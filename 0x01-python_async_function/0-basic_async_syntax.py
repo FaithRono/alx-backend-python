@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # 0-basic_async_syntax.py
-
 import asyncio  # Import the asyncio module to handle asynchronous operations
 import random   # Import the random module to generate random numbers
 
