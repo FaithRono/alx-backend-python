@@ -5,7 +5,7 @@
                  that takes in 2 int arguments: max_delay and n. You will
                  spawn wait_random n times with the specified max_delay.
 
-                 wait_n should return the list of all the delays (float values).
+                 wait_n should return the list of all the delays (float values)
                  The list of the delays should be in ascending order without
                  using sort() because of concurrency.
     Arguments: n: int, max_delay: int = 10
@@ -18,9 +18,11 @@ from typing import List  # Import List for type hinting
 # Import the wait_random coroutine from the previous file
 wait_random = __import__('0-basic_async_syntax').wait_random
 
+
 async def wait_n(n: int, max_delay: int = 10) -> List[float]:
-    """ Waits for random delay until max_delay, returns list of actual delays """
-    
+    """ Waits for random delay until max_delay,
+    returns list of actual delays """
+
     spawn_ls = []  # List to hold the spawned asyncio tasks
     delay_ls = []  # List to hold the actual delays
 
