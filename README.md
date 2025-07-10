@@ -3,13 +3,12 @@
 Welcome to the **Python Generators** project! This module demonstrates how to use Python generators to efficiently stream, paginate, and aggregate data from a MySQL database — one row or batch at a time.
 
 ---
-
+```
 ## 📁 Project Structure
----
--python-generators-0x00/
--├── 0-main.py
--├── 0-stream_users.py
--├── 1-batch_processing.py
+python-generators-0x00/
+├── 0-main.py
+├── 0-stream_users.py
+├── 1-batch_processing.py
 ├── 1-main.py
 ├── 2-lazy_paginate.py
 ├── 2-main.py
@@ -18,7 +17,7 @@ Welcome to the **Python Generators** project! This module demonstrates how to us
 ├── seed.py
 ├── user_data.csv
 └── README.md
----
+```
 ---
 
 ## 📌 Objectives
