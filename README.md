@@ -108,11 +108,14 @@ Calculates average user age using a streaming approach.
 
 - connection successful
 -Table user_data created successfully
--Database ALX_prodev is present 
-- [{'user_id': '...', 'name': 'John Doe', 'email': 'john@example.com', 'age': 32}, ...]
----Average age of users: 64.23
----💡 Technologies Used
---- Python 3.8+ ---
+-Database ALX_prodev is present: 
+             -[{'user_id': '...',
+             -'name': 'John Doe',
+             -'email': 'john@example.com',
+             -'age': 32}, ...]
+-Average age of users: 64.23
+-💡 Technologies Used
+-Python 3.8+
 
 MySQL
 
