@@ -122,13 +122,13 @@ Calculates average user age using a streaming approach.
 - CSV file handling
 
 ### 👤 Author
-Faith Cherono
+- Faith Cherono
 
-GitHub: FaithRono
+- GitHub: FaithRono
 
-LinkedIn: Faith Cherono
+- LinkedIn: Faith Cherono
 
-Email: faithrono132@gmail.com
+- Email: faithrono132@gmail.com
 
 ### 🏁 License
-This project is part of the ALX Backend Specialization and is open for educational use.
+- This project is part of the ALX Backend Specialization and is open for educational use.
