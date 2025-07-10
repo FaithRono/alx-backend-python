@@ -32,21 +32,22 @@ python-generators-0x00/
 
 ---
 
-### 🛠️ Setup Instructions
+## 🛠️ Setup Instructions
 
-## 1. 🔧 Install Dependencies
+### 1. 🔧 Install Dependencies
 
 Make sure you have Python and MySQL installed. Then install:
 
 ```bash
 pip install mysql-connector-python
 ```
-## 2. 📥 Create and Seed the Database
+### 2. 📥 Create and Seed the Database
 
 Update your MySQL credentials in seed.py, then run:
 ```
 ./0-main.py
 ```
+
 This will:
 
 *Connect to MySQL*
@@ -57,71 +58,61 @@ This will:
 
 *Populate it with sample data from user_data.csv*
 
-### 🚀 Features and Usage
+## 🚀 Features and Usage
 
-## 1️⃣ Stream Users One by One
-```
+### 1️⃣ Stream Users One by One
+
 ./1-main.py
-```
-File: 0-stream_users.py
 
+File: 0-stream_users.py
+```
 def stream_users():
     ...
     yield row
+```
 Uses a generator to yield users one by one.
 
-2️⃣ Batch Processing (Users > Age 25)
-bash
-Copy
-Edit
+### 2️⃣ Batch Processing (Users > Age 25)
+
 ./2-main.py
 File: 1-batch_processing.py
 
-python
-Copy
-Edit
+```
 def stream_users_in_batches(batch_size)
 def batch_processing(batch_size)
+```
 Processes users in chunks and filters based on age.
 
-3️⃣ Lazy Pagination
-bash
-Copy
-Edit
+### 3️⃣ Lazy Pagination
+
 python3 3-main.py
 File: 2-lazy_paginate.py
 
-python
-Copy
-Edit
+```
 def lazy_pagination(page_size)
+```
 Simulates paginated fetching using offset + LIMIT.
 
-4️⃣ Memory-Efficient Aggregation
-bash
-Copy
-Edit
+### 4️⃣ Memory-Efficient Aggregation
+
 python3 4-stream_ages.py
 File: 4-stream_ages.py
 
-python
-Copy
-Edit
+```
 def stream_user_ages()
 def average_age()
+```
 Calculates average user age using a streaming approach.
 
-📄 Sample Output
-bash
-Copy
-Edit
-connection successful
-Table user_data created successfully
-Database ALX_prodev is present 
-[{'user_id': '...', 'name': 'John Doe', 'email': 'john@example.com', 'age': 32}, ...]
-Average age of users: 64.23
-💡 Technologies Used
-Python 3.8+
+### 📄 Sample Output
+
+- connection successful
+-Table user_data created successfully
+-Database ALX_prodev is present 
+- [{'user_id': '...', 'name': 'John Doe', 'email': 'john@example.com', 'age': 32}, ...]
+---Average age of users: 64.23
+---💡 Technologies Used
+--- Python 3.8+ ---
 
 MySQL
 
