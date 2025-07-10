@@ -5,7 +5,7 @@ Welcome to the **Python Generators** project! This module demonstrates how to us
 ---
 
 ## 📁 Project Structure
-
+---
 python-generators-0x00/
 ├── 0-main.py
 ├── 0-stream_users.py
@@ -18,11 +18,7 @@ python-generators-0x00/
 ├── seed.py
 ├── user_data.csv
 └── README.md
-
-yaml
-Copy
-Edit
-
+---
 ---
 
 ## 📌 Objectives
@@ -46,9 +42,7 @@ pip install mysql-connector-python
 2. 📥 Create and Seed the Database
 Update your MySQL credentials in seed.py, then run:
 
-bash
-Copy
-Edit
+
 ./0-main.py
 This will:
 
