@@ -109,21 +109,19 @@ Calculates average user age using a streaming approach.
 - connection successful
 -Table user_data created successfully
 -Database ALX_prodev is present: 
-             -[{'user_id': '...',
-             -'name': 'John Doe',
-             -'email': 'john@example.com',
-             -'age': 32}, ...]
+             -[{'user_id': '...','name': 'John Doe','email': 'john@example.com','age': 32}, ...]
 -Average age of users: 64.23
--💡 Technologies Used
--Python 3.8+
 
-MySQL
+###💡 Technologies Used
+-Python 3.12.3
 
-Generators (yield)
+-MySQL
 
-CSV file handling
+- Generators (yield)
 
-👤 Author
+-CSV file handling
+
+### 👤 Author
 Faith Cherono
 
 GitHub: FaithRono
@@ -132,5 +130,5 @@ LinkedIn: Faith Cherono
 
 Email: faithrono132@gmail.com
 
-🏁 License
+### 🏁 License
 This project is part of the ALX Backend Specialization and is open for educational use.
