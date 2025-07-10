@@ -6,10 +6,10 @@ Welcome to the **Python Generators** project! This module demonstrates how to us
 
 ## 📁 Project Structure
 ---
-python-generators-0x00/
-├── 0-main.py
-├── 0-stream_users.py
-├── 1-batch_processing.py
+-python-generators-0x00/
+-├── 0-main.py
+-├── 0-stream_users.py
+-├── 1-batch_processing.py
 ├── 1-main.py
 ├── 2-lazy_paginate.py
 ├── 2-main.py
