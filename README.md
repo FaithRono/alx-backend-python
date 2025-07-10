@@ -3,8 +3,10 @@
 Welcome to the **Python Generators** project! This module demonstrates how to use Python generators to efficiently stream, paginate, and aggregate data from a MySQL database — one row or batch at a time.
 
 ---
-```
+
 ## 📁 Project Structure
+
+```
 python-generators-0x00/
 ├── 0-main.py
 ├── 0-stream_users.py
@@ -30,40 +32,39 @@ python-generators-0x00/
 
 ---
 
-## 🛠️ Setup Instructions
+### 🛠️ Setup Instructions
 
-### 1. 🔧 Install Dependencies
+## 1. 🔧 Install Dependencies
 
 Make sure you have Python and MySQL installed. Then install:
 
 ```bash
 pip install mysql-connector-python
-2. 📥 Create and Seed the Database
+```
+## 2. 📥 Create and Seed the Database
+
 Update your MySQL credentials in seed.py, then run:
-
-
+```
 ./0-main.py
+```
 This will:
 
-Connect to MySQL
+*Connect to MySQL*
 
-Create the ALX_prodev database
+*Create the ALX_prodev database*
 
-Create the user_data table
+*Create the user_data table*
 
-Populate it with sample data from user_data.csv
+*Populate it with sample data from user_data.csv*
 
-🚀 Features and Usage
-1️⃣ Stream Users One by One
-bash
-Copy
-Edit
+### 🚀 Features and Usage
+
+## 1️⃣ Stream Users One by One
+```
 ./1-main.py
+```
 File: 0-stream_users.py
 
-python
-Copy
-Edit
 def stream_users():
     ...
     yield row
