@@ -27,39 +27,41 @@ def log_queries(func):
             print(f"[{datetime.now()}] Executing query: {query}")
         return func(*args, **kwargs)
     return wrapper
-Implementation Details:
+```
+### Implementation Details:
 
-Uses functools.wraps to preserve the original function's metadata
+- Uses functools.wraps to preserve the original function's metadata
 
-Extracts the query from keyword arguments using kwargs.get('query')
+- Extracts the query from keyword arguments using kwargs.get('query')
 
-Prints a timestamped log message before executing the query
+- Prints a timestamped log message before executing the query
 
-Returns the original function's result unchanged
+- Returns the original function's result unchanged
 
-Behavior:
+### Behavior:
 
-When applied to a database function, it will:
+- When applied to a database function, it will:
 
-Print the query with execution timestamp
+- Print the query with execution timestamp
 
-Execute the original function
+- Execute the original function
 
-Return the results transparently
+- Return the results transparently
 
-Example Usage:
+### Example Usage:
 
-python
+```
 @log_queries
 def fetch_data(query):
     # database operations
-Best Practices:
+```
+### Best Practices:
 
-Include timestamps for better debugging
+- Include timestamps for better debugging
 
-Consider logging to a file in production
+- Consider logging to a file in production
 
-Can be extended to log execution time and results
+- Can be extended to log execution time and results
 
 1-with_db_connection.py
 Connection Management Decorator
