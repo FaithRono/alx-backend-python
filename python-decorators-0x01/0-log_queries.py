@@ -3,6 +3,7 @@
 # ===============================
 import sqlite3
 import functools
+from datetime import datetime  # Required for timestamping queries
 
 # Decorator to log SQL queries
 def log_queries(func):
@@ -10,7 +11,7 @@ def log_queries(func):
     def wrapper(*args, **kwargs):
         query = kwargs.get('query')
         if query:
-            print(f"Executing query: {query}")
+            print(f"[{datetime.now()}] Executing query: {query}")
         return func(*args, **kwargs)
     return wrapper
 
