@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import User, Conversation, Message
 from .serializers import (
     UserSerializer, 
@@ -13,6 +14,7 @@ from .serializers import (
     MessageSerializer, 
     MessageCreateSerializer
 )
+
 # Create your views here.
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -21,6 +23,11 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'user_id'
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['role', 'created_at']
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    ordering_fields = ['created_at', 'username']
+    ordering = ['-created_at']
     
     def get_queryset(self):
         """Filter users based on current user's permissions."""
@@ -33,6 +40,11 @@ class ConversationViewSet(viewsets.ModelViewSet):
     """ViewSet for managing conversations."""
     permission_classes = [IsAuthenticated]
     lookup_field = 'conversation_id'
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['created_at']
+    search_fields = ['participants__username']
+    ordering_fields = ['created_at']
+    ordering = ['-created_at']
     
     def get_queryset(self):
         """Return conversations where the current user is a participant."""
@@ -127,6 +139,11 @@ class MessageViewSet(viewsets.ModelViewSet):
     """ViewSet for managing messages."""
     permission_classes = [IsAuthenticated]
     lookup_field = 'message_id'
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['conversation', 'sender', 'sent_at']
+    search_fields = ['message_body', 'sender__username']
+    ordering_fields = ['sent_at']
+    ordering = ['-sent_at']
     
     def get_queryset(self):
         """Return messages from conversations where the current user is a participant."""
@@ -225,6 +242,9 @@ class ConversationMessagesViewSet(viewsets.ReadOnlyModelViewSet):
     """Specialized ViewSet for getting messages within a specific conversation."""
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['sent_at']
+    ordering = ['sent_at']
     
     def get_queryset(self):
         """Get messages for a specific conversation."""
@@ -240,4 +260,3 @@ class ConversationMessagesViewSet(viewsets.ReadOnlyModelViewSet):
         return Message.objects.filter(
             conversation=conversation
         ).order_by('sent_at')
-
