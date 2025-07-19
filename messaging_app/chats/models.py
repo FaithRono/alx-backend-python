@@ -9,8 +9,9 @@ from django.utils import timezone
 # ===============================
 class User(AbstractUser):
     """Custom user model extending Django's AbstractUser."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128)  # Explicitly define password field
     phone_number = models.CharField(max_length=20, null=True, blank=True)
 
     class Roles(models.TextChoices):
@@ -24,7 +25,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
     USERNAME_FIELD = 'username'
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.username} ({self.role})"
 
 
@@ -33,12 +34,12 @@ class User(AbstractUser):
 # ===============================
 class Conversation(models.Model):
     """Conversation model containing multiple participants."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    conversation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     participants = models.ManyToManyField(User, related_name='conversations')
     created_at = models.DateTimeField(default=timezone.now)
 
-    def _str_(self):
-        return f"Conversation {self.id}"
+    def __str__(self):
+        return f"Conversation {self.conversation_id}"
 
 
 # ===============================
@@ -46,11 +47,11 @@ class Conversation(models.Model):
 # ===============================
 class Message(models.Model):
     """Message model storing text messages sent by users."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     message_body = models.TextField()
     sent_at = models.DateTimeField(default=timezone.now)
 
-    def _str_(self):
+    def __str__(self):
         return f"Message from {self.sender.username} at {self.sent_at}"
