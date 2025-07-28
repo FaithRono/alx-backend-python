@@ -14,6 +14,16 @@ from .serializers import (
     MessageSerializer, 
     MessageCreateSerializer
 )
+from .permissions import (
+    IsParticipantOfConversation,
+    IsOwnerOrReadOnly,
+    IsMessageSender,
+    IsConversationParticipant,
+    CanCreateConversation,
+    CanSendMessage
+)
+from .filters import MessageFilter
+from .pagination import CustomPagination
 
 # Create your views here.
 
@@ -38,7 +48,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ConversationViewSet(viewsets.ModelViewSet):
     """ViewSet for managing conversations."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsParticipantOfConversation]
     lookup_field = 'conversation_id'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['created_at']
@@ -58,6 +68,15 @@ class ConversationViewSet(viewsets.ModelViewSet):
             return ConversationListSerializer
         return ConversationSerializer
     
+    def get_permissions(self):
+        """Return appropriate permissions based on action."""
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated, CanCreateConversation]
+        else:
+            permission_classes = [IsAuthenticated, IsParticipantOfConversation]
+        
+        return [permission() for permission in permission_classes]
+    
     def create(self, request, *args, **kwargs):
         """Create a new conversation."""
         serializer = self.get_serializer(data=request.data)
@@ -75,7 +94,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         response_serializer = ConversationSerializer(conversation)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsParticipantOfConversation])
     def add_participant(self, request, conversation_id=None):
         """Add a participant to the conversation."""
         conversation = self.get_object()
@@ -100,7 +119,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsParticipantOfConversation])
     def remove_participant(self, request, conversation_id=None):
         """Remove a participant from the conversation."""
         conversation = self.get_object()
@@ -125,7 +144,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, IsParticipantOfConversation])
     def messages(self, request, conversation_id=None):
         """Get all messages for a specific conversation."""
         conversation = self.get_object()
@@ -137,13 +156,14 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 class MessageViewSet(viewsets.ModelViewSet):
     """ViewSet for managing messages."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsConversationParticipant]
     lookup_field = 'message_id'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['conversation', 'sender', 'sent_at']
+    filterset_class = MessageFilter
     search_fields = ['message_body', 'sender__username']
     ordering_fields = ['sent_at']
     ordering = ['-sent_at']
+    pagination_class = CustomPagination
     
     def get_queryset(self):
         """Return messages from conversations where the current user is a participant."""
@@ -159,6 +179,17 @@ class MessageViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return MessageCreateSerializer
         return MessageSerializer
+    
+    def get_permissions(self):
+        """Return appropriate permissions based on action."""
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated, CanSendMessage]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsMessageSender]
+        else:
+            permission_classes = [IsAuthenticated, IsConversationParticipant]
+        
+        return [permission() for permission in permission_classes]
     
     def create(self, request, *args, **kwargs):
         """Send a new message to an existing conversation."""
@@ -190,6 +221,12 @@ class MessageViewSet(viewsets.ModelViewSet):
                 participants=request.user
             )
             messages = self.get_queryset().filter(conversation=conversation)
+            
+            # Apply pagination
+            page = self.paginate_queryset(messages)
+            if page is not None:
+                serializer = MessageSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
             
             serializer = MessageSerializer(messages, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
