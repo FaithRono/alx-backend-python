@@ -1,9 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import User, Conversation, Message
@@ -22,7 +21,7 @@ from .permissions import (
     CanCreateConversation,
     CanSendMessage
 )
-from .filters import MessageFilter
+from .filters import MessageFilter, ConversationFilter, UserFilter
 from .pagination import CustomPagination
 
 # Create your views here.
@@ -34,7 +33,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'user_id'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['role', 'created_at']
+    filterset_class = UserFilter
     search_fields = ['username', 'email', 'first_name', 'last_name']
     ordering_fields = ['created_at', 'username']
     ordering = ['-created_at']
@@ -51,16 +50,16 @@ class ConversationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsParticipantOfConversation]
     lookup_field = 'conversation_id'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['created_at']
+    filterset_class = ConversationFilter
     search_fields = ['participants__username']
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
+    ordering_fields = ['created_at', 'updated_at']
+    ordering = ['-updated_at']
     
     def get_queryset(self):
         """Return conversations where the current user is a participant."""
         return Conversation.objects.filter(
             participants=self.request.user
-        ).distinct().order_by('-created_at')
+        ).distinct().order_by('-updated_at')
     
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
@@ -146,9 +145,16 @@ class ConversationViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, IsParticipantOfConversation])
     def messages(self, request, conversation_id=None):
-        """Get all messages for a specific conversation."""
+        """Get all messages for a specific conversation with pagination."""
         conversation = self.get_object()
         messages = conversation.messages.all().order_by('sent_at')
+        
+        # Apply pagination
+        paginator = CustomPagination()
+        page = paginator.paginate_queryset(messages, request)
+        if page is not None:
+            serializer = MessageSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
         
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -172,7 +178,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         )
         return Message.objects.filter(
             conversation__in=user_conversations
-        ).order_by('-sent_at')
+        ).select_related('sender', 'conversation').order_by('-sent_at')
     
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
@@ -274,7 +280,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-# Additional utility views
 class ConversationMessagesViewSet(viewsets.ReadOnlyModelViewSet):
     """Specialized ViewSet for getting messages within a specific conversation."""
     serializer_class = MessageSerializer
@@ -282,10 +287,11 @@ class ConversationMessagesViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['sent_at']
     ordering = ['sent_at']
+    pagination_class = CustomPagination
     
     def get_queryset(self):
         """Get messages for a specific conversation."""
-        conversation_id = self.kwargs.get('conversation_id')
+        conversation_id = self.kwargs.get('conversation_conversation_id')
         
         # Ensure user is participant in the conversation
         conversation = get_object_or_404(
@@ -296,4 +302,4 @@ class ConversationMessagesViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Message.objects.filter(
             conversation=conversation
-        ).order_by('sent_at')
+        ).select_related('sender').order_by('sent_at')
