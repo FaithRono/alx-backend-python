@@ -38,6 +38,18 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'username']
     ordering = ['-created_at']
     
+    from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("""
+        <h1>Welcome to Messaging App API</h1>
+        <p>Available endpoints:</p>
+        <ul>
+            <li><a href="/api/">API Root</a></li>
+            <li><a href="/admin/">Admin Panel</a></li>
+        </ul>
+    """)
+    
     def get_queryset(self):
         """Filter users based on current user's permissions."""
         if self.request.user.role == 'admin':

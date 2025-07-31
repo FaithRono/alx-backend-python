@@ -136,7 +136,7 @@ class OffensiveLanguageMiddleware(MiddlewareMixin):
         return ip
 
 
-class RolePermissionMiddleware(MiddlewareMixin):
+class RolepermissionMiddleware(MiddlewareMixin):
     """
     Middleware to check user roles before allowing access to specific actions.
     Restricts certain endpoints to admin or moderator roles only.
