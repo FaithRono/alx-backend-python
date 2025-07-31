@@ -1,16 +1,11 @@
 import logging
+import os
 from datetime import datetime
 from django.http import HttpResponseForbidden, HttpResponseTooManyRequests
 from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
 from django.utils import timezone
-
-# Configure logging for requests
-logging.basicConfig(
-    filename='requests.log',
-    level=logging.INFO,
-    format='%(message)s'
-)
+from django.conf import settings
 
 class RequestLoggingMiddleware(MiddlewareMixin):
     """
@@ -21,14 +16,49 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     def __init__(self, get_response=None):
         self.get_response = get_response
         super().__init__(get_response)
+        
+        # Ensure requests.log file exists
+        self.log_file = 'requests.log'
+        if not os.path.exists(self.log_file):
+            with open(self.log_file, 'w') as f:
+                f.write("")  # Create empty file
+        
+        # Configure logging specifically for this middleware
+        self.logger = logging.getLogger('request_middleware')
+        self.logger.setLevel(logging.INFO)
+        
+        # Remove existing handlers to avoid duplicates
+        if self.logger.handlers:
+            self.logger.handlers.clear()
+        
+        # Create file handler
+        file_handler = logging.FileHandler(self.log_file, mode='a')
+        file_handler.setLevel(logging.INFO)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(message)s')
+        file_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        self.logger.addHandler(file_handler)
+        
+        # Prevent propagation to avoid duplicate logs
+        self.logger.propagate = False
 
     def __call__(self, request):
         # Get user info
         user = request.user.username if request.user.is_authenticated else 'Anonymous'
         
-        # Log the request
+        # Create log message
         log_message = f"{datetime.now()} - User: {user} - Path: {request.path}"
-        logging.info(log_message)
+        
+        # Log to file
+        self.logger.info(log_message)
+        
+        # Also ensure it's written immediately
+        for handler in self.logger.handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.flush()
         
         # Continue with the request
         response = self.get_response(request)
