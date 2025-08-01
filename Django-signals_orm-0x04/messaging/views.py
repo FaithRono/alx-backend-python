@@ -9,16 +9,20 @@ from .models import Message, Notification, MessageHistory
 def inbox(request):
     """Display inbox with received messages"""
     user = request.user
-    # Use select_related and prefetch_related for optimization
-    messages = Message.objects.filter(
-        receiver=user
-    ).select_related('sender').prefetch_related('replies').order_by('-timestamp')
     
-    # Use the custom manager for unread messages
-    unread_messages = Message.unread_objects.unread_for_user(user)
+    # Use select_related and prefetch_related for optimization with .only()
+    messages_queryset = Message.objects.filter(
+        receiver=user
+    ).select_related('sender').prefetch_related('replies').only(
+        'id', 'sender__username', 'sender__first_name', 'sender__last_name', 
+        'content', 'timestamp', 'read', 'edited'
+    ).order_by('-timestamp')
+    
+    # Use the custom manager for unread messages with .only() optimization
+    unread_messages = Message.unread.unread_for_user(user)
     
     return render(request, 'messaging/inbox.html', {
-        'messages': messages, 
+        'messages': messages_queryset, 
         'unread_messages': unread_messages
     })
 
@@ -27,16 +31,21 @@ def inbox(request):
 def conversation(request, conversation_id):
     """Display conversation messages with threading"""
     user = request.user
-    # Get messages for the conversation with optimization
-    messages = Message.objects.filter(
-        id=conversation_id
-    ).select_related('sender').prefetch_related('replies__sender')
     
-    # Get all replies recursively
+    # Get messages for the conversation with optimization and .only()
+    messages_queryset = Message.objects.filter(
+        id=conversation_id
+    ).select_related('sender').prefetch_related('replies__sender').only(
+        'id', 'sender__username', 'content', 'timestamp', 'read'
+    )
+    
+    # Get all replies recursively with optimization
     main_message = get_object_or_404(Message, id=conversation_id)
     replies = Message.objects.filter(
         parent_message=main_message
-    ).select_related('sender').prefetch_related('replies')
+    ).select_related('sender').prefetch_related('replies').only(
+        'id', 'sender__username', 'content', 'timestamp', 'parent_message'
+    )
     
     return render(request, 'messaging/conversation.html', {
         'main_message': main_message,
@@ -102,7 +111,8 @@ def send_message(request):
             messages.error(request, f'Error sending message: {str(e)}')
     
     from django.contrib.auth.models import User
-    users = User.objects.exclude(id=request.user.id)
+    # Optimize user query with .only()
+    users = User.objects.exclude(id=request.user.id).only('id', 'username', 'first_name', 'last_name')
     return render(request, 'messaging/send_message.html', {'users': users})
 
 @login_required
@@ -131,8 +141,10 @@ def message_history(request, message_id):
         messages.error(request, 'You do not have permission to view this message history.')
         return redirect('inbox')
     
-    # Get message history
-    history = MessageHistory.objects.filter(message=message).order_by('-edited_at')
+    # Get message history with .only() optimization
+    history = MessageHistory.objects.filter(message=message).select_related('edited_by').only(
+        'id', 'old_content', 'edited_at', 'edited_by__username'
+    ).order_by('-edited_at')
     
     return render(request, 'messaging/message_history.html', {
         'message': message,
@@ -141,11 +153,12 @@ def message_history(request, message_id):
 
 @login_required
 def mark_messages_read(request):
-    """Mark messages as read"""
+    """Mark messages as read using custom manager"""
     if request.method == 'POST':
         message_ids = request.POST.getlist('message_ids')
         if message_ids:
-            Message.unread_objects.mark_as_read(request.user, message_ids)
+            # Use the custom manager to mark messages as read
+            Message.unread.mark_as_read(request.user, message_ids)
             messages.success(request, 'Messages marked as read.')
     
     return redirect('inbox')
@@ -153,21 +166,40 @@ def mark_messages_read(request):
 @login_required
 def threaded_conversation(request, message_id):
     """Display threaded conversation using advanced ORM (Task 3)"""
-    # Get the root message
-    root_message = get_object_or_404(Message, id=message_id)
+    # Get the root message with .only() optimization
+    root_message = get_object_or_404(
+        Message.objects.select_related('sender').only(
+            'id', 'sender__username', 'content', 'timestamp'
+        ), 
+        id=message_id
+    )
     
-    # Use prefetch_related to optimize queries for replies
+    # Use prefetch_related to optimize queries for replies with .only()
     messages_with_replies = Message.objects.filter(
         id=message_id
     ).prefetch_related(
         'replies__sender',
         'replies__replies__sender',  # For nested replies
         'replies__replies__replies__sender'  # For deeper nesting
-    ).select_related('sender')
+    ).select_related('sender').only(
+        'id', 'sender__username', 'content', 'timestamp', 'parent_message'
+    )
     
     return render(request, 'messaging/threaded_conversation.html', {
         'root_message': root_message,
         'messages': messages_with_replies
+    })
+
+@login_required
+def unread_messages_view(request):
+    """Display only unread messages using custom manager"""
+    user = request.user
+    
+    # Use the custom manager to get unread messages (already optimized with .only())
+    unread_messages = Message.unread.unread_for_user(user)
+    
+    return render(request, 'messaging/unread_messages.html', {
+        'unread_messages': unread_messages
     })
 
 def home(request):

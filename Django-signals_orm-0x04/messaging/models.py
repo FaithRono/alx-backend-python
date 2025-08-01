@@ -1,6 +1,23 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Custom Manager for unread messages (Task 4)
+class UnreadMessagesManager(models.Manager):
+    """Custom manager to filter unread messages for a specific user"""
+    
+    def unread_for_user(self, user):
+        """Get all unread messages for a specific user"""
+        return self.filter(receiver=user, read=False).only(
+            'id', 'sender__username', 'content', 'timestamp'
+        ).select_related('sender')
+    
+    def mark_as_read(self, user, message_ids=None):
+        """Mark messages as read for a user"""
+        queryset = self.filter(receiver=user, read=False)
+        if message_ids:
+            queryset = queryset.filter(id__in=message_ids)
+        return queryset.update(read=True)
+
 class Message(models.Model):
     sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
     receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
@@ -8,9 +25,13 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
     edited = models.BooleanField(default=False)
-    edited_at = models.DateTimeField(null=True, blank=True)  # Added field
-    edited_by = models.ForeignKey(User, null=True, blank=True, related_name='edited_messages', on_delete=models.SET_NULL)  # Added field
+    edited_at = models.DateTimeField(null=True, blank=True)
+    edited_by = models.ForeignKey(User, null=True, blank=True, related_name='edited_messages', on_delete=models.SET_NULL)
     parent_message = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
+
+    # Add the custom manager
+    objects = models.Manager()  # Default manager
+    unread = UnreadMessagesManager()  # Custom manager for unread messages
 
     def __str__(self):
         return f'Message from {self.sender} to {self.receiver} at {self.timestamp}'
@@ -37,24 +58,3 @@ class MessageHistory(models.Model):
     
     def __str__(self):
         return f'History for message {self.message.id} edited at {self.edited_at}'
-
-# Custom Manager for unread messages (Task 4)
-class UnreadMessagesManager(models.Manager):
-    """Custom manager to filter unread messages for a specific user"""
-    
-    def unread_for_user(self, user):
-        """Get all unread messages for a specific user"""
-        return self.filter(receiver=user, read=False).only(
-            'id', 'sender__username', 'content', 'timestamp'
-        ).select_related('sender')
-    
-    def mark_as_read(self, user, message_ids=None):
-        """Mark messages as read for a user"""
-        queryset = self.filter(receiver=user, read=False)
-        if message_ids:
-            queryset = queryset.filter(id__in=message_ids)
-        return queryset.update(read=True)
-
-# Add the custom manager to Message model
-# We need to add this to the Message class
-Message.add_to_class('unread_objects', UnreadMessagesManager())
