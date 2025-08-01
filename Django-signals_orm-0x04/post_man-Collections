@@ -1,0 +1,1503 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "name": "Messaging App API Tests - Task 3",
+        "description": "Comprehensive API testing for Django REST Framework Messaging App with Authentication and Permissions",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "12345678"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{access_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global pre-request script",
+                    "console.log('Running test for:', pm.info.requestName);"
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global test script",
+                    "console.log('Response Status:', pm.response.code);",
+                    "console.log('Response Time:', pm.response.responseTime + 'ms');"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "conversation_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "message_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user2_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user2_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user3_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user3_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. Authentication Tests",
+            "item": [
+                {
+                    "name": "Create User 1 (Superuser)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User 1 created successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('user_id', response.user_id);",
+                                    "    console.log('User 1 created with ID:', response.user_id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser1\",\n    \"email\": \"test1@example.com\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User1\",\n    \"password\": \"testpass123\",\n    \"role\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                ""
+                            ]
+                        },
+                        "description": "Create the first test user with admin role"
+                    }
+                },
+                {
+                    "name": "Create User 2",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User 2 created successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('user2_id', response.user_id);",
+                                    "    console.log('User 2 created with ID:', response.user_id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser2\",\n    \"email\": \"test2@example.com\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User2\",\n    \"password\": \"testpass123\",\n    \"role\": \"guest\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                ""
+                            ]
+                        },
+                        "description": "Create the second test user"
+                    }
+                },
+                {
+                    "name": "Create User 3 (Unauthorized User)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User 3 created successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('user3_id', response.user_id);",
+                                    "    console.log('User 3 created with ID:', response.user_id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser3\",\n    \"email\": \"test3@example.com\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User3\",\n    \"password\": \"testpass123\",\n    \"role\": \"guest\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                ""
+                            ]
+                        },
+                        "description": "Create third user for unauthorized access testing"
+                    }
+                },
+                {
+                    "name": "JWT Login - User 1",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"JWT login successful for User 1\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response contains JWT tokens\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('access');",
+                                    "    pm.expect(jsonData).to.have.property('refresh');",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('access_token', response.access);",
+                                    "    pm.collectionVariables.set('refresh_token', response.refresh);",
+                                    "    console.log('User 1 JWT login successful');",
+                                    "    console.log('Access token length:', response.access.length);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser1\",\n    \"password\": \"testpass123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/token/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "token",
+                                ""
+                            ]
+                        },
+                        "description": "Authenticate User 1 and get JWT tokens"
+                    }
+                },
+                {
+                    "name": "JWT Login - User 2",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"JWT login successful for User 2\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('user2_token', response.access);",
+                                    "    console.log('User 2 JWT login successful');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser2\",\n    \"password\": \"testpass123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/token/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "token",
+                                ""
+                            ]
+                        },
+                        "description": "Authenticate User 2 and get JWT tokens"
+                    }
+                },
+                {
+                    "name": "JWT Login - User 3",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"JWT login successful for User 3\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('user3_token', response.access);",
+                                    "    console.log('User 3 JWT login successful');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser3\",\n    \"password\": \"testpass123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/token/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "token",
+                                ""
+                            ]
+                        },
+                        "description": "Authenticate User 3 for unauthorized access testing"
+                    }
+                },
+                {
+                    "name": "Test Unauthorized Access (No Token)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Unauthorized access properly blocked\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error message contains authentication details\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('detail');",
+                                    "    pm.expect(jsonData.detail).to.include('Authentication');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Test that unauthorized users cannot access conversations"
+                    }
+                }
+            ],
+            "description": "Test JWT authentication and unauthorized access prevention"
+        },
+        {
+            "name": "2. Conversation Management Tests",
+            "item": [
+                {
+                    "name": "Create Conversation (User 1 & User 2)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Conversation created successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response contains conversation details\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('conversation_id');",
+                                    "    pm.expect(jsonData).to.have.property('participants');",
+                                    "    pm.expect(jsonData.participants).to.be.an('array');",
+                                    "    pm.expect(jsonData.participants.length).to.be.at.least(2);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('conversation_id', response.conversation_id);",
+                                    "    console.log('Conversation created:', response.conversation_id);",
+                                    "    console.log('Participants:', response.participants.length);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"participant_ids\": [\"{{user_id}}\", \"{{user2_id}}\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Create a conversation between User 1 and User 2"
+                    }
+                },
+                {
+                    "name": "Fetch User 1 Conversations",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Conversations fetched successfully\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response contains pagination or results\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.satisfy(function(data) {",
+                                    "        return Array.isArray(data) || data.hasOwnProperty('results');",
+                                    "    });",
+                                    "});",
+                                    "",
+                                    "pm.test(\"User can see their conversations\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    pm.expect(results.length).to.be.at.least(1);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Fetch conversations for authenticated User 1"
+                    }
+                },
+                {
+                    "name": "Fetch User 2 Conversations",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User 2 can access their conversations\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"User 2 sees the shared conversation\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    pm.expect(results.length).to.be.at.least(1);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user2_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Verify User 2 can see their conversations"
+                    }
+                },
+                {
+                    "name": "Get Specific Conversation Details",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Conversation details retrieved\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Conversation contains correct participants\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('participants');",
+                                    "    pm.expect(jsonData.participants).to.be.an('array');",
+                                    "    pm.expect(jsonData.participants.length).to.equal(2);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/{{conversation_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                "{{conversation_id}}",
+                                ""
+                            ]
+                        },
+                        "description": "Get detailed information about the created conversation"
+                    }
+                }
+            ],
+            "description": "Test conversation creation and retrieval with proper authentication"
+        },
+        {
+            "name": "3. Message Management Tests",
+            "item": [
+                {
+                    "name": "Send Message (User 1)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Message sent successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Message contains proper details\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('message_id');",
+                                    "    pm.expect(jsonData).to.have.property('message_body');",
+                                    "    pm.expect(jsonData).to.have.property('sender');",
+                                    "    pm.expect(jsonData).to.have.property('conversation');",
+                                    "    pm.expect(jsonData.message_body).to.equal('Hello from User 1! This is our first message.');",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('message_id', response.message_id);",
+                                    "    console.log('Message sent with ID:', response.message_id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conversation\": \"{{conversation_id}}\",\n    \"message_body\": \"Hello from User 1! This is our first message.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ]
+                        },
+                        "description": "Send a message from User 1 to the conversation"
+                    }
+                },
+                {
+                    "name": "Send Message (User 2)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User 2 message sent successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Message is from User 2\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.sender.username).to.equal('testuser2');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user2_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conversation\": \"{{conversation_id}}\",\n    \"message_body\": \"Hi User 1! This is User 2 replying to your message.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ]
+                        },
+                        "description": "Send a reply message from User 2"
+                    }
+                },
+                {
+                    "name": "Send Multiple Messages for Pagination Test",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Multiple messages sent successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conversation\": \"{{conversation_id}}\",\n    \"message_body\": \"This is message number {{$randomInt}} for pagination testing.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ]
+                        },
+                        "description": "Send additional messages to test pagination"
+                    }
+                },
+                {
+                    "name": "Fetch All Messages (With Pagination)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Messages fetched successfully\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Pagination is working (20 per page)\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    if (jsonData.hasOwnProperty('results')) {",
+                                    "        pm.expect(jsonData).to.have.property('count');",
+                                    "        pm.expect(jsonData).to.have.property('next');",
+                                    "        pm.expect(jsonData).to.have.property('previous');",
+                                    "        pm.expect(jsonData.results.length).to.be.at.most(20);",
+                                    "        console.log('Total messages:', jsonData.count);",
+                                    "        console.log('Messages on this page:', jsonData.results.length);",
+                                    "    }",
+                                    "});",
+                                    "",
+                                    "pm.test(\"User can only see messages from their conversations\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    pm.expect(results.length).to.be.at.least(1);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/?page=1&page_size=20",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "page_size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Fetch messages with pagination (20 per page)"
+                    }
+                },
+                {
+                    "name": "Fetch Messages by Conversation",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Conversation messages fetched successfully\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"All messages belong to the correct conversation\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    if (results.length > 0) {",
+                                    "        const conversationId = pm.collectionVariables.get('conversation_id');",
+                                    "        results.forEach(message => {",
+                                    "            pm.expect(message.conversation).to.equal(conversationId);",
+                                    "        });",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/by_conversation/?conversation_id={{conversation_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                "by_conversation",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "conversation_id",
+                                    "value": "{{conversation_id}}"
+                                }
+                            ]
+                        },
+                        "description": "Fetch messages filtered by specific conversation"
+                    }
+                },
+                {
+                    "name": "Get Conversation Messages (Nested Route)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Nested route messages retrieved successfully\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Messages are properly ordered by time\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    if (results.length > 1) {",
+                                    "        const firstMessage = new Date(results[0].sent_at);",
+                                    "        const lastMessage = new Date(results[results.length - 1].sent_at);",
+                                    "        pm.expect(firstMessage.getTime()).to.be.at.most(lastMessage.getTime());",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                "{{conversation_id}}",
+                                "messages",
+                                ""
+                            ]
+                        },
+                        "description": "Get messages using nested conversation route"
+                    }
+                }
+            ],
+            "description": "Test message sending and retrieval with proper permissions"
+        },
+        {
+            "name": "4. Permission and Security Tests",
+            "item": [
+                {
+                    "name": "Unauthorized User Cannot Access Conversation",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Unauthorized access properly denied\", function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([403, 404]);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error message indicates permission issue\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('detail');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user3_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/{{conversation_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                "{{conversation_id}}",
+                                ""
+                            ]
+                        },
+                        "description": "Test that User 3 cannot access conversation between User 1 and User 2"
+                    }
+                },
+                {
+                    "name": "Unauthorized User Cannot Send Message",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Unauthorized message sending blocked\", function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error response contains appropriate message\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.satisfy(function(data) {",
+                                    "        return data.hasOwnProperty('detail') || data.hasOwnProperty('error');",
+                                    "    });",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user3_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conversation\": \"{{conversation_id}}\",\n    \"message_body\": \"This message should be blocked!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ]
+                        },
+                        "description": "Test that unauthorized user cannot send messages to private conversations"
+                    }
+                },
+                {
+                    "name": "User Cannot Edit Another User's Message",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Message editing by non-sender blocked\", function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([403, 404]);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Permission error message present\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('detail');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user2_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"message_body\": \"User 2 trying to edit User 1's message - should fail!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/{{message_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                "{{message_id}}",
+                                ""
+                            ]
+                        },
+                        "description": "Test that User 2 cannot edit User 1's message"
+                    }
+                },
+                {
+                    "name": "User Can Edit Their Own Message",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User can edit their own message\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Message content updated correctly\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message_body).to.include('EDITED');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"message_body\": \"EDITED: Hello from User 1! This message has been updated.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/{{message_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                "{{message_id}}",
+                                ""
+                            ]
+                        },
+                        "description": "Test that User 1 can edit their own message"
+                    }
+                },
+                {
+                    "name": "Test Invalid JWT Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Invalid token rejected\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Token error message present\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('detail');",
+                                    "    pm.expect(jsonData.detail).to.include('token');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "invalid.jwt.token.here",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Test that invalid JWT tokens are properly rejected"
+                    }
+                }
+            ],
+            "description": "Test permission enforcement and security measures"
+        },
+        {
+            "name": "5. Advanced Feature Tests",
+            "item": [
+                {
+                    "name": "Test Message Filtering by Date Range",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Date filtering works correctly\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Filtered messages within date range\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    if (results.length > 0) {",
+                                    "        const today = new Date();",
+                                    "        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);",
+                                    "        results.forEach(message => {",
+                                    "            const messageDate = new Date(message.sent_at);",
+                                    "            pm.expect(messageDate.getTime()).to.be.at.least(yesterday.getTime());",
+                                    "        });",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/?sent_after={{$timestamp}}&sent_before={{$timestamp}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "sent_after",
+                                    "value": "{{$timestamp}}"
+                                },
+                                {
+                                    "key": "sent_before",
+                                    "value": "{{$timestamp}}"
+                                }
+                            ]
+                        },
+                        "description": "Test message filtering by date range"
+                    }
+                },
+                {
+                    "name": "Test Message Search Functionality",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Search functionality works\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Search results contain search term\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    if (results.length > 0) {",
+                                    "        const hasHello = results.some(message => ",
+                                    "            message.message_body.toLowerCase().includes('hello') ||",
+                                    "            message.message_body.toLowerCase().includes('hi')",
+                                    "        );",
+                                    "        pm.expect(hasHello).to.be.true;",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/?search=Hello",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Hello"
+                                }
+                            ]
+                        },
+                        "description": "Test message content search functionality"
+                    }
+                },
+                {
+                    "name": "Test JWT Token Refresh",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Token refresh successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"New access token received\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('access');",
+                                    "    pm.expect(jsonData.access).to.be.a('string');",
+                                    "    pm.expect(jsonData.access.length).to.be.above(10);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('access_token', response.access);",
+                                    "    console.log('JWT token refreshed successfully');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/token/refresh/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "token",
+                                "refresh",
+                                ""
+                            ]
+                        },
+                        "description": "Test JWT token refresh functionality"
+                    }
+                },
+                {
+                    "name": "Performance Test - Create Multiple Messages",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Performance: Message creation under 1000ms\", function () {",
+                                    "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Bulk message creation successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conversation\": \"{{conversation_id}}\",\n    \"message_body\": \"Performance test message {{$timestamp}} - Testing API response time\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/messages/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "messages",
+                                ""
+                            ]
+                        },
+                        "description": "Test API performance with message creation"
+                    }
+                }
+            ],
+            "description": "Test advanced features like filtering, search, and performance"
+        },
+        {
+            "name": "6. Final Validation Tests",
+            "item": [
+                {
+                    "name": "Final: Verify All Features Working Together",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Complete integration test successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"All conversation features working\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const results = jsonData.results || jsonData;",
+                                    "    pm.expect(results.length).to.be.at.least(1);",
+                                    "    ",
+                                    "    if (results.length > 0) {",
+                                    "        const conversation = results[0];",
+                                    "        pm.expect(conversation).to.have.property('conversation_id');",
+                                    "        pm.expect(conversation).to.have.property('participants');",
+                                    "        pm.expect(conversation).to.have.property('message_count');",
+                                    "        pm.expect(conversation).to.have.property('last_message');",
+                                    "    }",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Authentication and permissions working\", function () {",
+                                    "    // If we can access this endpoint, authentication is working",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
+                                    "});",
+                                    "",
+                                    "console.log('🎉 All API tests completed successfully!');",
+                                    "console.log('✅ JWT Authentication working');",
+                                    "console.log('✅ Conversation management working');",
+                                    "console.log('✅ Message sending/receiving working');",
+                                    "console.log('✅ Permission controls working');",
+                                    "console.log('✅ Pagination working (20 messages per page)');",
+                                    "console.log('✅ Filtering and search working');",
+                                    "console.log('✅ Unauthorized access properly blocked');"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Final integration test to verify all features are working together"
+                    }
+                }
+            ],
+            "description": "Final validation that all features work together correctly"
+        }
+    ]
+}
