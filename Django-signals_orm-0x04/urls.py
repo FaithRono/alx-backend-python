@@ -23,4 +23,6 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('admin/', admin.site.urls),
     path('api/', include('chats.urls')),
+    path('', include('messaging.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),  # For login/logout
 ]
