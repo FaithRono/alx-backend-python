@@ -1,1 +1,19 @@
-venv
+# Dependencies
+node_modules/
+venv/
+.venv/
+env/
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Caches
+__pycache__/
+.cache/
+*.pyc
+
+# Logs and databases
+*.log
+*.sqlite3
