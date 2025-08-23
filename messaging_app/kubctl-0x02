@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# kubctl-0x02 - Blue-Green Deployment Script
+
+echo "🚀 Starting Blue-Green Deployment..."
+
+# Deploy blue version (current production)
+echo "🔵 Deploying Blue version..."
+kubectl apply -f blue_deployment.yaml
+kubectl apply -f kubeservice.yaml
+
+# Wait for blue deployment to be ready
+echo "⏳ Waiting for Blue deployment to be ready..."
+kubectl rollout status deployment/django-messaging-app-blue
+
+# Verify blue deployment
+echo "✅ Checking Blue deployment logs..."
+BLUE_POD=$(kubectl get pods -l app=django-messaging-app,version=blue -o jsonpath='{.items[0].metadata.name}')
+kubectl logs $BLUE_POD --tail=20
+
+# Deploy green version (new version)
+echo "🟢 Deploying Green version..."
+kubectl apply -f green_deployment.yaml
+
+# Wait for green deployment to be ready
+echo "⏳ Waiting for Green deployment to be ready..."
+kubectl rollout status deployment/django-messaging-app-green
+
+# Verify green deployment
+echo "✅ Checking Green deployment logs..."
+GREEN_POD=$(kubectl get pods -l app=django-messaging-app,version=green -o jsonpath='{.items[0].metadata.name}')
+kubectl logs $GREEN_POD --tail=20
+
+# Test both versions
+echo "🧪 Testing both versions..."
+kubectl port-forward service/django-service-blue 8081:80 &
+BLUE_PF_PID=$!
+
+kubectl port-forward service/django-service-green 8082:80 &
+GREEN_PF_PID=$!
+
+sleep 5
+
+echo "🔵 Testing Blue version:"
+curl -s http://localhost:8081/health/ || echo "Blue version test failed"
+
+echo "🟢 Testing Green version:"
+curl -s http://localhost:8082/health/ || echo "Green version test failed"
+
+# Switch traffic to green (update service selector)
+echo "🔄 Switching traffic from Blue to Green..."
+kubectl patch service django-service-blue-green -p '{"spec":{"selector":{"app":"django-messaging-app","version":"green"}}}'
+
+echo "✅ Traffic switched to Green version"
+
+# Verify the switch
+echo "🔍 Verifying traffic switch..."
+kubectl get service django-service-blue-green -o yaml | grep -A2 selector
+
+# Clean up port forwarding
+kill $BLUE_PF_PID $GREEN_PF_PID 2>/dev/null
+
+echo "🎉 Blue-Green deployment complete!"

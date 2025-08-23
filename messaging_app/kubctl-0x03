@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# kubctl-0x03 - Rolling Update Script
+
+echo "🔄 Starting Rolling Update to version 2.0..."
+
+# Set up continuous testing in background
+echo "🧪 Setting up continuous testing..."
+kubectl port-forward service/django-service-blue 8080:80 &
+PORT_FORWARD_PID=$!
+
+# Wait for port forwarding to be ready
+sleep 3
+
+# Start continuous curl requests to monitor downtime
+echo "📡 Starting continuous requests to monitor downtime..."
+(
+  echo "$(date): Starting continuous requests..."
+  while true; do
+    RESPONSE=$(curl -s -w "%{http_code}" http://localhost:8080/health/ -o /dev/null 2>/dev/null)
+    if [ "$RESPONSE" != "200" ]; then
+      echo "$(date): Request failed with code: $RESPONSE"
+    else
+      echo "$(date): Request successful (200)"
+    fi
+    sleep 1
+  done
+) &
+CURL_PID=$!
+
+# Apply the updated deployment (triggers rolling update)
+echo "🚀 Applying updated deployment..."
+kubectl apply -f blue_deployment.yaml
+
+# Monitor the rollout progress
+echo "👀 Monitoring rollout status..."
+kubectl rollout status deployment/django-messaging-app-blue --timeout=300s
+
+# Watch pods during the update
+echo "📋 Watching pods during update..."
+kubectl get pods -l app=django-messaging-app,version=blue -w &
+WATCH_PID=$!
+
+# Wait for rollout to complete
+sleep 10
+
+# Stop watching pods
+kill $WATCH_PID 2>/dev/null
+
+# Verify rolling update is complete
+echo "✅ Verifying rolling update completion..."
+kubectl get deployment django-messaging-app-blue
+kubectl get pods -l app=django-messaging-app,version=blue
+
+# Check rollout history
+echo "📚 Rollout history:"
+kubectl rollout history deployment/django-messaging-app-blue
+
+# Test the updated version
+echo "🧪 Testing updated version..."
+curl -s http://localhost:8080/health/ && echo " - Health check passed" || echo " - Health check failed"
+
+# Stop continuous testing
+kill $CURL_PID 2>/dev/null
+kill $PORT_FORWARD_PID 2>/dev/null
+
+# Final verification
+echo "🔍 Final verification - checking image version:"
+kubectl get deployment django-messaging-app-blue -o jsonpath='{.spec.template.spec.containers[0].image}'
+echo ""
+
+echo "🎉 Rolling update complete!"
+echo "📊 Deployment status:"
+kubectl describe deployment django-messaging-app-blue | grep -A5 "RollingUpdateStrategy"

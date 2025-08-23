@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# kurbeScript - Start Kubernetes cluster and verify setup
+
+echo "🚀 Starting Kubernetes cluster setup..."
+
+# Check if minikube is installed
+if ! command -v minikube &> /dev/null; then
+    echo "❌ Minikube is not installed. Please install minikube first."
+    exit 1
+fi
+
+# Check if kubectl is installed
+if ! command -v kubectl &> /dev/null; then
+    echo "❌ kubectl is not installed. Please install kubectl first."
+    exit 1
+fi
+
+# Start minikube cluster
+echo "🔄 Starting minikube cluster..."
+minikube start --driver=docker
+
+# Wait for cluster to be ready
+echo "⏳ Waiting for cluster to be ready..."
+kubectl wait --for=condition=Ready nodes --all --timeout=300s
+
+# Verify cluster is running
+echo "✅ Verifying cluster info..."
+kubectl cluster-info
+
+# Retrieve available pods
+echo "📋 Getting all pods in all namespaces..."
+kubectl get pods --all-namespaces
+
+# Get cluster status
+echo "📊 Cluster status:"
+kubectl get nodes
+
+echo "🎉 Kubernetes cluster setup complete!"
