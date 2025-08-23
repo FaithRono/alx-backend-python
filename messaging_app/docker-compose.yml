@@ -18,9 +18,9 @@ services:
       start_period: 30s
     command: --default-authentication-plugin=mysql_native_password
 
+services:
   web:
     build: .
-    restart: always
     ports:
       - "8000:8000"
     environment:
@@ -41,8 +41,24 @@ services:
       - .env
     command: >
       sh -c "python wait_for_db.py &&
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+             python messaging_app/manage.py migrate &&
+             python messaging_app/manage.py runserver 0.0.0.0:8000"
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DB}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
 volumes:
   db_data:
