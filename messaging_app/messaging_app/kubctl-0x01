@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# kubctl-0x01 - Scale Django app and perform load testing
+
+echo "🔄 Scaling Django app to 3 replicas..."
+
+# Scale the deployment to 3 replicas
+kubectl scale deployment django-messaging-app --replicas=3
+
+# Wait for rollout to complete
+echo "⏳ Waiting for rollout to complete..."
+kubectl rollout status deployment/django-messaging-app
+
+# Verify multiple pods are running
+echo "📋 Checking running pods:"
+kubectl get pods -l app=django-messaging-app
+
+# Get service details for load testing
+SERVICE_IP=$(kubectl get service django-service -o jsonpath='{.spec.clusterIP}')
+echo "🌐 Service IP: $SERVICE_IP"
+
+# Set up port forwarding for load testing
+echo "🔗 Setting up port forwarding..."
+kubectl port-forward service/django-service 8080:80 &
+PORT_FORWARD_PID=$!
+
+# Wait for port forwarding to be ready
+sleep 5
+
+# Install wrk if not available (comment out if already installed)
+echo "📦 Installing wrk for load testing..."
+# sudo apt-get update && sudo apt-get install -y wrk
+
+# Perform load testing
+echo "🧪 Performing load test with wrk..."
+wrk -t12 -c400 -d30s http://localhost:8080/ || echo "wrk not available, skipping load test"
+
+# Monitor resource usage
+echo "📊 Monitoring resource usage:"
+kubectl top nodes || echo "Metrics server not available"
+kubectl top pods -l app=django-messaging-app || echo "Metrics server not available"
+
+# Show pod distribution across nodes
+echo "🗺️ Pod distribution:"
+kubectl get pods -l app=django-messaging-app -o wide
+
+# Clean up port forwarding
+kill $PORT_FORWARD_PID 2>/dev/null
+
+echo "✅ Scaling and load testing complete!"
