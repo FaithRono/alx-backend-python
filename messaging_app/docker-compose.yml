@@ -42,15 +42,16 @@ services:
     command: >
       sh -c "python wait_for_db.py &&
              python messaging_app/manage.py migrate &&
-             python messaging_app/manage.py runserver 0.0.0.0:8000"
+             python3 messaging_app/manage.py runserver 0.0.0.0:8000"
 
   db:
     image: mysql:8.0
+    restart: always
     environment:
-      - MYSQL_DATABASE=${MYSQL_DB}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -59,6 +60,9 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
+      interval: 5s
+      start_period: 30s
+    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
   db_data:
